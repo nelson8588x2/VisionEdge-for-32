@@ -36,6 +36,7 @@ const els = {
     videoPlaceholder: $('#video-placeholder'),
     correctedPlaceholder: $('#corrected-placeholder'),
     canvasSelection: $('#canvas-selection'),
+    correctedContainer: $('#corrected-container'),
     // 面板
     panelOriginal: $('#panel-original'),
     panelCorrected: $('#panel-corrected'),
@@ -154,6 +155,8 @@ async function processFrame() {
                 els.imgCorrected.src = `data:image/jpeg;base64,${data.corrected_display}`;
                 els.imgCorrected.classList.remove('hidden');
                 els.correctedPlaceholder.classList.add('hidden');
+                // 動態調整容器比例以符合影像
+                adaptCorrectedContainer();
             } else {
                 els.imgCorrected.classList.add('hidden');
                 els.correctedPlaceholder.classList.remove('hidden');
@@ -372,6 +375,23 @@ function getCroppedSelection() {
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
 
     return canvas.toDataURL('image/jpeg', 0.85);
+}
+
+// ============================================================
+// 動態調整 Corrected View 容器比例
+// ============================================================
+function adaptCorrectedContainer() {
+    const img = els.imgCorrected;
+    if (!img.naturalWidth || !img.naturalHeight) {
+        // 圖片尚未載入，等 onload 後再嘗試
+        img.addEventListener('load', function onLoad() {
+            img.removeEventListener('load', onLoad);
+            adaptCorrectedContainer();
+        });
+        return;
+    }
+    const ratio = img.naturalWidth / img.naturalHeight;
+    els.correctedContainer.style.aspectRatio = `${ratio}`;
 }
 
 // ============================================================
