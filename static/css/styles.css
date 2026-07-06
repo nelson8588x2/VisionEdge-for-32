@@ -11,6 +11,16 @@
     @apply bg-accent text-white border-accent shadow-sm;
 }
 
+/* 影像區域標籤（badge 樣式，看起來可互動） */
+.label-badge {
+    @apply inline-flex items-center bg-accent text-white text-xs font-bold px-3 py-1 rounded-md shadow-sm;
+}
+
+/* 影像區域上方的動作按鈕 */
+.btn-action {
+    @apply bg-white border border-light-300 text-light-700 text-xs font-semibold px-3 py-1 rounded-md shadow-sm cursor-pointer transition-all hover:bg-accent hover:text-white hover:border-accent;
+}
+
 /* 面板群組 */
 .panel-group {
     @apply bg-white border border-light-300 rounded-lg p-3 shadow-sm;

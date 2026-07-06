@@ -52,23 +52,31 @@
     <main class="flex-1 flex overflow-hidden p-2 gap-2 min-h-0">
 
         <!-- Left: Original feed -->
-        <section id="panel-original" class="flex flex-col flex-1 min-w-0">
-            <h2 class="text-light-700 text-xs font-semibold mb-1 px-1">Original Feed</h2>
-            <div class="relative flex-1 bg-light-200 rounded-lg flex items-center justify-center overflow-hidden min-h-0">
-                <video id="video-feed" autoplay playsinline muted class="max-w-full max-h-full object-contain"></video>
+        <section id="panel-original" class="flex flex-col flex-1 min-w-0 justify-center">
+            <div class="flex items-center mb-1 h-7">
+                <span class="label-badge">Original Feed</span>
+            </div>
+            <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden shadow-sm">
+                <video id="video-feed" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover"></video>
                 <canvas id="canvas-capture" class="hidden"></canvas>
-                <img id="img-original" class="max-w-full max-h-full object-contain hidden" alt="Original">
-                <p id="video-placeholder" class="text-light-500 text-sm absolute">Starting camera...</p>
+                <img id="img-original" class="absolute inset-0 w-full h-full object-cover hidden" alt="Original">
+                <p id="video-placeholder" class="text-light-400 text-sm absolute inset-0 flex items-center justify-center">Starting camera...</p>
             </div>
         </section>
 
         <!-- Center: Corrected view (hidden in Calibration) -->
-        <section id="panel-corrected" class="flex flex-col flex-1 min-w-0 hidden">
-            <h2 class="text-light-700 text-xs font-semibold mb-1 px-1">Corrected View</h2>
-            <div class="relative flex-1 bg-light-200 rounded-lg flex items-center justify-center overflow-hidden min-h-0">
-                <img id="img-corrected" class="max-w-full max-h-full object-contain hidden" alt="Corrected">
+        <section id="panel-corrected" class="flex flex-col flex-1 min-w-0 hidden justify-center">
+            <div class="flex items-center mb-1 h-7">
+                <span class="label-badge">Corrected View</span>
+                <div class="ml-auto flex gap-1">
+                    <button id="btn-crop" class="btn-action">Crop Paper</button>
+                    <button id="btn-crop-cancel" class="btn-action hidden">Back to Live</button>
+                </div>
+            </div>
+            <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden shadow-sm">
+                <img id="img-corrected" class="absolute inset-0 w-full h-full object-contain hidden" alt="Corrected">
                 <canvas id="canvas-selection" class="absolute inset-0 w-full h-full hidden cursor-crosshair"></canvas>
-                <p id="corrected-placeholder" class="text-light-500 text-sm absolute">Waiting for calibration...</p>
+                <p id="corrected-placeholder" class="text-light-400 text-sm absolute inset-0 flex items-center justify-center">Waiting for calibration...</p>
             </div>
         </section>
 
@@ -103,12 +111,7 @@
             <!-- Chat panel -->
             <div id="mode-chat" class="mode-content hidden h-full">
                 <div class="flex flex-col h-full gap-2">
-                    <!-- Top: Crop button -->
-                    <div class="flex gap-2">
-                        <button id="btn-crop" class="btn-primary flex-1 text-xs py-1.5">Crop Paper</button>
-                        <button id="btn-crop-cancel" class="btn-sm flex-1 hidden">Back to Live</button>
-                    </div>
-                    <!-- Middle: Chat history (expands) -->
+                    <!-- Chat history (expands) -->
                     <div id="chat-history" class="flex-1 overflow-y-auto text-sm space-y-2 min-h-0 bg-white rounded-lg border border-light-300 p-2">
                         <p class="text-light-500 text-xs">
                             Drag a selection on the corrected view, then ask a question below.
