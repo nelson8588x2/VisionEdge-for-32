@@ -475,10 +475,12 @@ function bindEvents() {
 
     // Crop 取消：回到即時校正畫面
     els.btnCropCancel.addEventListener('click', () => {
-        state.cropActive = false;
+        // 先隱藏影像，避免 crop 畫面瞬間以 w-full 放大
+        els.imgCorrected.classList.add('hidden');
         // 恢復即時校正畫面的填滿模式
         els.imgCorrected.classList.add('w-full');
         els.imgCorrected.classList.remove('max-h-full', 'max-w-full', 'object-contain', 'mx-auto');
+        state.cropActive = false;
         els.btnCropCancel.classList.add('hidden');
         els.btnCrop.classList.remove('hidden');
     });
