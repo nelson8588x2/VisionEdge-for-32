@@ -45,6 +45,7 @@ class FrameRequest(BaseModel):
     image: str  # base64 編碼的 JPEG
     wb_enabled: bool = True
     contrast_enabled: bool = False
+    paper_orientation: str = "auto"  # auto, landscape, portrait
 
 
 class ProcessResponse(BaseModel):
@@ -55,6 +56,17 @@ class ProcessResponse(BaseModel):
     status_type: str = "idle"  # ok, warn, error, idle
     is_calibrated: bool = False
 
+
+
+class CropRequest(BaseModel):
+    """紙張區域裁切請求。"""
+    image: str  # base64 JPEG
+
+
+class CropResponse(BaseModel):
+    """紙張區域裁切回應。"""
+    cropped: Optional[str] = None  # base64 JPEG
+    status: str = ""
 
 
 class ChatRequest(BaseModel):
@@ -88,7 +100,7 @@ def decode_frame(base64_str: str) -> np.ndarray:
         raise HTTPException(status_code=400, detail=f"影像解碼失敗: {str(e)}")
 
 
-def encode_frame(frame: np.ndarray, quality: int = 85) -> str:
+def encode_frame(frame: np.ndarray, quality: int = 70) -> str:
     """將 OpenCV BGR 影像編碼為 Base64 JPEG。"""
     _, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, quality])
     return base64.b64encode(buffer).decode("utf-8")
@@ -111,7 +123,7 @@ async def process_frame(req: FrameRequest):
 
     if corners is not None:
         if detector.corners_changed:
-            corrector.update(corners, frame.shape)
+            corrector.update(corners, frame.shape, paper_orientation=req.paper_orientation)
 
         if detector.frames_since_detection == 0:
             status_type = "ok"
@@ -153,6 +165,27 @@ async def process_frame(req: FrameRequest):
         is_calibrated=corrector.is_calibrated,
     )
 
+
+
+@app.post("/api/crop", response_model=CropResponse)
+async def crop_paper(req: CropRequest):
+    """裁切紙張區域：僅返回校正後的紙張部分。"""
+    if not corrector.is_calibrated:
+        return CropResponse(status="尚未校準，請先完成 Calibration")
+
+    frame = decode_frame(req.image)
+    corrected = corrector.correct(frame)
+    paper_only = corrector.get_paper_only(corrected)
+
+    if paper_only is not None:
+        # 應用白平衡
+        paper_display = color_corrector_instance.process(paper_only, True, False)
+        return CropResponse(
+            cropped=encode_frame(paper_display, quality=90),
+            status="裁切完成",
+        )
+    else:
+        return CropResponse(status="無法裁切紙張區域")
 
 
 @app.post("/api/chat", response_model=ChatResponse)

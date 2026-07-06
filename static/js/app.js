@@ -35,6 +35,9 @@ const els = {
     videoPlaceholder: $('#video-placeholder'),
     correctedPlaceholder: $('#corrected-placeholder'),
     canvasSelection: $('#canvas-selection'),
+    // 面板
+    panelOriginal: $('#panel-original'),
+    panelCorrected: $('#panel-corrected'),
     // 狀態
     fpsLabel: $('#fps-label'),
     camInfo: $('#cam-info'),
@@ -42,9 +45,12 @@ const els = {
     statusText: $('#status-text'),
     // 按鈕
     btnReset: $('#btn-reset'),
+    btnCrop: $('#btn-crop'),
     btnChatSend: $('#btn-chat-send'),
     chatInput: $('#chat-input'),
     chatHistory: $('#chat-history'),
+    // 選項
+    selPaperOrient: $('#sel-paper-orient'),
 };
 
 // ============================================================
@@ -91,7 +97,7 @@ function captureFrame() {
     canvas.height = els.video.videoHeight;
     ctx.drawImage(els.video, 0, 0);
 
-    return canvas.toDataURL('image/jpeg', 0.8);
+    return canvas.toDataURL('image/jpeg', 0.65);
 }
 
 // ============================================================
@@ -99,12 +105,12 @@ function captureFrame() {
 // ============================================================
 function startProcessingLoop() {
     stopProcessingLoop();
-    // 每 300ms 發送一幀到伺服器進行校正
+    // 每 150ms 發送一幀到伺服器進行校正（約 6-7 FPS）
     state.processInterval = setInterval(() => {
         if (!state.processing) {
             processFrame();
         }
-    }, 300);
+    }, 150);
 }
 
 function stopProcessingLoop() {
@@ -129,6 +135,7 @@ async function processFrame() {
                 image: imageData,
                 wb_enabled: true,
                 contrast_enabled: false,
+                paper_orientation: els.selPaperOrient ? els.selPaperOrient.value : 'auto',
             }),
         });
 
@@ -215,13 +222,13 @@ function appendChatMessage(role, text) {
     const div = document.createElement('div');
     if (role === 'user') {
         div.className = 'chat-msg-user';
-        div.innerHTML = `<span class="chat-role">You:</span><p class="text-xs text-gray-300 mt-1">${escapeHtml(text)}</p>`;
+        div.innerHTML = `<span class="chat-role">You:</span><p class="text-xs text-light-700 mt-1">${escapeHtml(text)}</p>`;
     } else if (role === 'ai') {
         div.className = 'chat-msg-ai';
-        div.innerHTML = `<span class="chat-role">AI:</span><p class="text-xs text-gray-200 mt-1">${escapeHtml(text).replace(/\n/g, '<br>')}</p>`;
+        div.innerHTML = `<span class="chat-role">AI:</span><p class="text-xs text-light-800 mt-1">${escapeHtml(text).replace(/\n/g, '<br>')}</p>`;
     } else if (role === 'loading') {
         div.className = 'chat-msg-ai loading-dot';
-        div.innerHTML = `<span class="chat-role">AI:</span><p class="text-xs text-gray-400 mt-1 italic">${text}</p>`;
+        div.innerHTML = `<span class="chat-role">AI:</span><p class="text-xs text-light-600 mt-1 italic">${text}</p>`;
     } else {
         div.className = 'chat-msg-error';
         div.innerHTML = `<p class="text-xs">${escapeHtml(text)}</p>`;
@@ -389,12 +396,16 @@ function switchMode(mode) {
     $$('.mode-content').forEach(el => el.classList.add('hidden'));
     $(`#mode-${mode}`).classList.remove('hidden');
 
-    // 控制面板可見性
-    const isChat = mode === 'chat';
-    els.canvasSelection.classList.toggle('hidden', !isChat);
-
-    // 在 chat 模式下調整選取畫布大小
-    if (isChat) {
+    // Calibration: 只顯示 Original、隱藏 Corrected
+    // Chat: 只顯示 Corrected、隱藏 Original
+    if (mode === 'calibration') {
+        els.panelOriginal.classList.remove('hidden');
+        els.panelCorrected.classList.add('hidden');
+        els.canvasSelection.classList.add('hidden');
+    } else if (mode === 'chat') {
+        els.panelOriginal.classList.add('hidden');
+        els.panelCorrected.classList.remove('hidden');
+        els.canvasSelection.classList.remove('hidden');
         resizeSelectionCanvas();
     }
 
@@ -419,6 +430,28 @@ function bindEvents() {
     // 模式切換
     $$('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => switchMode(btn.dataset.mode));
+    });
+
+    // Crop 按鈕：單獨裁切紙張區域
+    els.btnCrop.addEventListener('click', async () => {
+        const imageData = captureFrame();
+        if (!imageData) return;
+        try {
+            const resp = await fetch('/api/crop', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData }),
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();
+            if (data.cropped) {
+                els.imgCorrected.src = `data:image/jpeg;base64,${data.cropped}`;
+                els.imgCorrected.classList.remove('hidden');
+                els.correctedPlaceholder.classList.add('hidden');
+            }
+        } catch (err) {
+            console.error('Crop 失敗:', err);
+        }
     });
 
     // 重置

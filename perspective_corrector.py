@@ -21,7 +21,7 @@ class PerspectiveCorrector:
         self.paper_bounds = None  # (x, y, w, h) of paper in corrected frame
         self.is_calibrated = False
 
-    def update(self, corners, frame_shape):
+    def update(self, corners, frame_shape, paper_orientation="auto"):
         """
         計算透視變換矩陣。
 
@@ -31,29 +31,41 @@ class PerspectiveCorrector:
         Args:
             corners: np.ndarray (4, 2) - 偵測到的角點 (TL, TR, BR, BL)
             frame_shape: (height, width, channels) 輸入畫面的形狀
+            paper_orientation: "auto", "landscape", "portrait" — 強制紙張方向
         """
         src = np.array(corners, dtype=np.float32).reshape(4, 2)
         frame_h, frame_w = frame_shape[:2]
 
-        # 判斷紙張方向（直向 vs 橫向）
+        # 計算紙張邊長
         w_top = np.linalg.norm(src[1] - src[0])
         w_bottom = np.linalg.norm(src[2] - src[3])
         h_left = np.linalg.norm(src[3] - src[0])
         h_right = np.linalg.norm(src[2] - src[1])
         avg_w = (w_top + w_bottom) / 2.0
         avg_h = (h_left + h_right) / 2.0
-        is_landscape_paper = avg_w > (avg_h * 1.1)
+
+        # 判斷紙張方向
+        if paper_orientation == "landscape":
+            is_landscape_paper = True
+        elif paper_orientation == "portrait":
+            is_landscape_paper = False
+        else:
+            # 自動偵測：寬 > 高 * 1.05 即為橫向
+            is_landscape_paper = avg_w > (avg_h * 1.05)
 
         # 判斷攝影機是否為橫向 (16:9 等寬螢幕)
         is_landscape_frame = frame_w > frame_h
 
         if is_landscape_paper:
-            # 橫向紙張：寬邊為長邊
-            paper_w_px = min(int(avg_w * 1.2), frame_w)
+            # 橫向紙張：寬邊為長邊（A4 橫放: 297 x 210）
+            # 在橫向畫面中，讓紙張寬度盡量填滿（留邊距）
+            if is_landscape_frame:
+                paper_w_px = int(frame_w * 0.85)
+            else:
+                paper_w_px = min(int(avg_w * 1.2), frame_w)
             paper_h_px = int(paper_w_px * PAPER_RATIO)
         else:
             # 直向紙張：高邊為長邊
-            # 在橫向畫面中，讓紙張盡量填滿高度（留 5% 邊距）
             if is_landscape_frame:
                 paper_h_px = int(frame_h * 0.90)
             else:
