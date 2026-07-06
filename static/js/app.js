@@ -393,9 +393,14 @@ function switchMode(mode) {
         btn.classList.toggle('active', btn.dataset.mode === mode);
     });
 
-    // 隱藏所有模式面板
-    $$('.mode-content').forEach(el => el.classList.add('hidden'));
-    $(`#mode-${mode}`).classList.remove('hidden');
+    // 隱藏所有模式面板，移除 flex 避免覆蓋 hidden
+    $$('.mode-content').forEach(el => {
+        el.classList.add('hidden');
+        el.classList.remove('flex');
+    });
+    const activePanel = $(`#mode-${mode}`);
+    activePanel.classList.remove('hidden');
+    activePanel.classList.add('flex');
 
     // Calibration: 只顯示 Original、隱藏 Corrected
     // Chat: 只顯示 Corrected、隱藏 Original

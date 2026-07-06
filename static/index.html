@@ -75,10 +75,7 @@
             @apply bg-red-500 hover:bg-red-600 text-white font-bold rounded-md px-4 py-2 text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed;
         }
 
-        /* 模式內容 */
-        .mode-content {
-            @apply flex flex-col gap-2;
-        }
+        /* .mode-content 不再設 display:flex，避免覆蓋 hidden */
 
         /* 狀態指示燈 */
         .dot-ok { @apply bg-green-500; }
@@ -156,7 +153,7 @@
         <aside id="mode-panel" class="w-[240px] flex-shrink-0 flex flex-col min-h-0 overflow-hidden">
 
             <!-- Calibration panel -->
-            <div id="mode-calibration" class="mode-content h-full">
+            <div id="mode-calibration" class="mode-content flex flex-col gap-2 h-full">
                 <div class="panel-group">
                     <h3 class="panel-title">Status</h3>
                     <div id="status-indicator" class="flex items-center gap-2 mb-2">
@@ -181,7 +178,7 @@
             </div>
 
             <!-- Chat panel -->
-            <div id="mode-chat" class="mode-content hidden h-full">
+            <div id="mode-chat" class="mode-content hidden flex-col gap-2 h-full">
                 <div class="flex flex-col h-full gap-2">
                     <!-- Chat history (expands) -->
                     <div id="chat-history" class="flex-1 overflow-y-auto text-sm space-y-2 min-h-0 bg-white rounded-lg border border-light-300 p-2">
