@@ -39,8 +39,8 @@
     <header class="bg-white h-[44px] flex items-center px-4 gap-4 flex-shrink-0 border-b border-light-300 shadow-sm">
         <h1 class="text-accent font-bold text-lg mr-3">VisionEdge</h1>
         
-        <button class="tab-btn active" data-mode="calibration">Calibration</button>
-        <button class="tab-btn" data-mode="chat">Chat</button>
+        <button class="tab-btn active" data-mode="calibration">⚙ Calibration</button>
+        <button class="tab-btn" data-mode="chat">✉ Chat</button>
 
         <div class="flex-1"></div>
         
@@ -53,35 +53,37 @@
 
         <!-- Left: Original feed -->
         <section id="panel-original" class="flex flex-col flex-1 min-w-0 justify-center">
-            <div class="flex items-center mb-1 h-7">
+            <div class="flex items-center mb-1 h-7 gap-2">
                 <span class="label-badge">Original Feed</span>
+                <span id="status-dot-inline" class="w-2.5 h-2.5 rounded-full bg-light-500 flex-shrink-0"></span>
+                <span id="status-text-inline" class="text-xs text-light-600 truncate">Searching...</span>
             </div>
-            <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden shadow-sm">
+            <div class="relative w-full aspect-video bg-light-200 rounded-lg overflow-hidden shadow-sm border border-light-300">
                 <video id="video-feed" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover"></video>
                 <canvas id="canvas-capture" class="hidden"></canvas>
                 <img id="img-original" class="absolute inset-0 w-full h-full object-cover hidden" alt="Original">
-                <p id="video-placeholder" class="text-light-400 text-sm absolute inset-0 flex items-center justify-center">Starting camera...</p>
+                <p id="video-placeholder" class="text-light-500 text-sm absolute inset-0 flex items-center justify-center">Starting camera...</p>
             </div>
         </section>
 
         <!-- Center: Corrected view (hidden in Calibration) -->
         <section id="panel-corrected" class="flex flex-col flex-1 min-w-0 hidden justify-center">
-            <div class="flex items-center mb-1 h-7">
+            <div class="flex items-center mb-1 h-7 gap-2">
                 <span class="label-badge">Corrected View</span>
-                <div class="ml-auto flex gap-1">
-                    <button id="btn-crop" class="btn-action">Crop Paper</button>
-                    <button id="btn-crop-cancel" class="btn-action hidden">Back to Live</button>
+                <div class="ml-auto flex gap-1.5">
+                    <button id="btn-crop" class="btn-crop-action">Crop Paper</button>
+                    <button id="btn-crop-cancel" class="btn-crop-action btn-crop-back hidden">Back to Live</button>
                 </div>
             </div>
-            <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden shadow-sm">
+            <div class="relative w-full aspect-video bg-light-200 rounded-lg overflow-hidden shadow-sm border border-light-300">
                 <img id="img-corrected" class="absolute inset-0 w-full h-full object-contain hidden" alt="Corrected">
                 <canvas id="canvas-selection" class="absolute inset-0 w-full h-full hidden cursor-crosshair"></canvas>
-                <p id="corrected-placeholder" class="text-light-400 text-sm absolute inset-0 flex items-center justify-center">Waiting for calibration...</p>
+                <p id="corrected-placeholder" class="text-light-500 text-sm absolute inset-0 flex items-center justify-center">Waiting for calibration...</p>
             </div>
         </section>
 
         <!-- Right: Mode panel -->
-        <aside id="mode-panel" class="w-[250px] flex-shrink-0 flex flex-col min-h-0">
+        <aside id="mode-panel" class="w-[240px] flex-shrink-0 flex flex-col min-h-0 overflow-hidden">
 
             <!-- Calibration panel -->
             <div id="mode-calibration" class="mode-content h-full">
@@ -118,10 +120,10 @@
                         </p>
                     </div>
                     <!-- Bottom: Input (pinned) -->
-                    <div class="flex gap-2 flex-shrink-0">
+                    <div class="flex gap-1.5 flex-shrink-0">
                         <input id="chat-input" type="text" placeholder="Ask a question..."
-                            class="flex-1 bg-white border border-light-300 rounded-md px-3 py-1.5 text-sm text-light-800 focus:outline-none focus:border-accent">
-                        <button id="btn-chat-send" class="btn-primary px-3 py-1.5">Send</button>
+                            class="flex-1 min-w-0 bg-white border border-light-300 rounded-md px-2 py-1.5 text-sm text-light-800 focus:outline-none focus:border-accent">
+                        <button id="btn-chat-send" class="btn-send flex-shrink-0">Send</button>
                     </div>
                 </div>
             </div>
