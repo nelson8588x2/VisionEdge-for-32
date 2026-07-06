@@ -151,6 +151,9 @@ async function processFrame() {
         // 更新校正後影像顯示（Crop 狀態下不覆寫）
         if (!state.cropActive) {
             if (data.corrected_display) {
+                // 確保是 live 模式的 class（從 crop 回來時無縫恢復）
+                els.imgCorrected.classList.add('w-full', 'block');
+                els.imgCorrected.classList.remove('max-h-full', 'max-w-full', 'object-contain', 'mx-auto');
                 els.imgCorrected.src = `data:image/jpeg;base64,${data.corrected_display}`;
                 els.imgCorrected.classList.remove('hidden');
                 els.correctedPlaceholder.classList.add('hidden');
@@ -473,13 +476,8 @@ function bindEvents() {
         }
     });
 
-    // Crop 取消：回到即時校正畫面
+    // Crop 取消：只切換 flag，讓 processFrame 無縫接手替換影像
     els.btnCropCancel.addEventListener('click', () => {
-        // 先隱藏影像，避免 crop 畫面瞬間以 w-full 放大
-        els.imgCorrected.classList.add('hidden');
-        // 恢復即時校正畫面的填滿模式
-        els.imgCorrected.classList.add('w-full');
-        els.imgCorrected.classList.remove('max-h-full', 'max-w-full', 'object-contain', 'mx-auto');
         state.cropActive = false;
         els.btnCropCancel.classList.add('hidden');
         els.btnCrop.classList.remove('hidden');
