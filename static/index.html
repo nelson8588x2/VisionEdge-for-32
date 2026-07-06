@@ -33,14 +33,16 @@
     </script>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="bg-light-100 text-light-800 min-h-screen flex flex-col overflow-hidden">
+<body class="bg-light-100 text-light-800 h-screen flex flex-col overflow-hidden">
 
     <!-- 頂部標籤列 -->
-    <header class="bg-white h-[50px] flex items-center px-4 gap-2 flex-shrink-0 border-b border-light-300 shadow-sm">
-        <h1 class="text-accent font-bold text-lg mr-5">VisionEdge</h1>
+    <header class="bg-white h-[44px] flex items-center px-4 gap-3 flex-shrink-0 border-b border-light-300 shadow-sm">
+        <h1 class="text-accent font-bold text-lg mr-4">VisionEdge</h1>
         
-        <button class="tab-btn active" data-mode="calibration">Calibration</button>
-        <button class="tab-btn" data-mode="chat">Chat</button>
+        <nav class="flex bg-light-200 rounded-lg p-0.5 gap-0.5">
+            <button class="tab-btn active" data-mode="calibration">&#x1f4f7; Calibration</button>
+            <button class="tab-btn" data-mode="chat">&#x1f4ac; Chat</button>
+        </nav>
 
         <div class="flex-1"></div>
         
@@ -49,11 +51,11 @@
     </header>
 
     <!-- 主要內容區域 -->
-    <main class="flex-1 flex overflow-hidden p-3 gap-3">
+    <main class="flex-1 flex overflow-hidden p-2 gap-2 min-h-0">
 
         <!-- 左：原始影像 -->
         <section id="panel-original" class="flex flex-col flex-1 min-w-0">
-            <h2 class="text-accent text-center text-sm font-bold mb-1">Original Feed</h2>
+            <h2 class="text-accent text-sm font-bold mb-1">Original Feed</h2>
             <div class="relative flex-1 bg-white rounded-xl border border-light-300 shadow-sm flex items-center justify-center overflow-hidden">
                 <video id="video-feed" autoplay playsinline muted class="max-w-full max-h-full object-contain"></video>
                 <canvas id="canvas-capture" class="hidden"></canvas>
@@ -64,7 +66,7 @@
 
         <!-- 中：校正後影像（Calibration 模式預設隱藏） -->
         <section id="panel-corrected" class="flex flex-col flex-1 min-w-0 hidden">
-            <h2 class="text-accent text-center text-sm font-bold mb-1">Corrected View</h2>
+            <h2 class="text-accent text-sm font-bold mb-1">Corrected View</h2>
             <div class="relative flex-1 bg-white rounded-xl border border-light-300 shadow-sm flex items-center justify-center overflow-hidden">
                 <img id="img-corrected" class="max-w-full max-h-full object-contain hidden" alt="Corrected">
                 <canvas id="canvas-selection" class="absolute inset-0 w-full h-full hidden cursor-crosshair"></canvas>
@@ -73,7 +75,7 @@
         </section>
 
         <!-- 右：模式面板 -->
-        <aside id="mode-panel" class="w-[280px] flex-shrink-0 flex flex-col gap-2 overflow-y-auto">
+        <aside id="mode-panel" class="w-[260px] flex-shrink-0 flex flex-col gap-2 overflow-y-auto min-h-0">
 
             <!-- Calibration 面板 -->
             <div id="mode-calibration" class="mode-content">
@@ -106,6 +108,7 @@
                     <h3 class="panel-title">Ask AI</h3>
                     <p class="text-xs text-light-600 mb-2">在校正後影像上拖曳選取區域，然後提問。</p>
                     <button id="btn-crop" class="btn-primary w-full mb-2">Crop 紙張區域</button>
+                    <button id="btn-crop-cancel" class="btn-sm w-full mb-2 hidden">← 返回即時畫面</button>
                     <div id="chat-history" class="flex-1 overflow-y-auto text-sm space-y-2 mb-2 max-h-[400px]">
                         <div class="text-light-500 text-xs">
                             1. 在影像上拖曳選取區域<br>

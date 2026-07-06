@@ -11,6 +11,7 @@ const state = {
     cameraRunning: false,
     isCalibrated: false,
     processing: false,
+    cropActive: false,
     // 選取框（Chat 模式）
     selection: null,
     isSelecting: false,
@@ -46,6 +47,7 @@ const els = {
     // 按鈕
     btnReset: $('#btn-reset'),
     btnCrop: $('#btn-crop'),
+    btnCropCancel: $('#btn-crop-cancel'),
     btnChatSend: $('#btn-chat-send'),
     chatInput: $('#chat-input'),
     chatHistory: $('#chat-history'),
@@ -146,15 +148,17 @@ async function processFrame() {
             els.video.classList.add('hidden');
         }
 
-        // 更新校正後影像顯示
-        if (data.corrected_display) {
-            els.imgCorrected.src = `data:image/jpeg;base64,${data.corrected_display}`;
-            els.imgCorrected.classList.remove('hidden');
-            els.correctedPlaceholder.classList.add('hidden');
-        } else {
-            els.imgCorrected.classList.add('hidden');
-            els.correctedPlaceholder.classList.remove('hidden');
-            els.correctedPlaceholder.textContent = '等待校正...';
+        // 更新校正後影像顯示（Crop 狀態下不覆寫）
+        if (!state.cropActive) {
+            if (data.corrected_display) {
+                els.imgCorrected.src = `data:image/jpeg;base64,${data.corrected_display}`;
+                els.imgCorrected.classList.remove('hidden');
+                els.correctedPlaceholder.classList.add('hidden');
+            } else {
+                els.imgCorrected.classList.add('hidden');
+                els.correctedPlaceholder.classList.remove('hidden');
+                els.correctedPlaceholder.textContent = '等待校正...';
+            }
         }
 
         // 更新狀態
@@ -403,6 +407,10 @@ function switchMode(mode) {
         els.panelOriginal.classList.add('hidden');
         els.panelCorrected.classList.remove('hidden');
         els.canvasSelection.classList.remove('hidden');
+        // 退出 crop 狀態
+        state.cropActive = false;
+        els.btnCrop.classList.remove('hidden');
+        els.btnCropCancel.classList.add('hidden');
         resizeSelectionCanvas();
     }
 
@@ -429,10 +437,11 @@ function bindEvents() {
         btn.addEventListener('click', () => switchMode(btn.dataset.mode));
     });
 
-    // Crop 按鈕：單獨裁切紙張區域
+    // Crop 按鈕：裁切紙張區域並凍結顯示
     els.btnCrop.addEventListener('click', async () => {
         const imageData = captureFrame();
         if (!imageData) return;
+        els.btnCrop.disabled = true;
         try {
             const resp = await fetch('/api/crop', {
                 method: 'POST',
@@ -442,13 +451,25 @@ function bindEvents() {
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             const data = await resp.json();
             if (data.cropped) {
+                state.cropActive = true;
                 els.imgCorrected.src = `data:image/jpeg;base64,${data.cropped}`;
                 els.imgCorrected.classList.remove('hidden');
                 els.correctedPlaceholder.classList.add('hidden');
+                els.btnCrop.classList.add('hidden');
+                els.btnCropCancel.classList.remove('hidden');
             }
         } catch (err) {
             console.error('Crop 失敗:', err);
+        } finally {
+            els.btnCrop.disabled = false;
         }
+    });
+
+    // Crop 取消：回到即時校正畫面
+    els.btnCropCancel.addEventListener('click', () => {
+        state.cropActive = false;
+        els.btnCropCancel.classList.add('hidden');
+        els.btnCrop.classList.remove('hidden');
     });
 
     // 重置

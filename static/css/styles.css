@@ -1,14 +1,14 @@
 /* VisionEdge Web — 亮色主題樣式 */
 
-/* 標籤按鈕 */
+/* 標籤按鈕（膠囊切換樣式） */
 .tab-btn {
-    @apply bg-light-200 text-light-600 border-none rounded-md px-4 py-1.5 font-bold text-sm cursor-pointer transition-all;
+    @apply bg-transparent text-light-600 border-none rounded-md px-4 py-1.5 font-bold text-sm cursor-pointer transition-all;
 }
 .tab-btn:hover {
     @apply bg-light-300 text-light-800;
 }
 .tab-btn.active {
-    @apply bg-accent text-white;
+    @apply bg-accent text-white shadow-md;
 }
 
 /* 面板群組 */
