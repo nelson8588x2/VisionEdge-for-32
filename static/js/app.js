@@ -460,6 +460,9 @@ function bindEvents() {
                 els.imgCorrected.src = `data:image/jpeg;base64,${data.cropped}`;
                 els.imgCorrected.classList.remove('hidden');
                 els.correctedPlaceholder.classList.add('hidden');
+                // Crop 影像保持原始比例，不填滿寬度
+                els.imgCorrected.classList.remove('w-full');
+                els.imgCorrected.classList.add('max-h-full', 'max-w-full', 'object-contain', 'mx-auto');
                 els.btnCrop.classList.add('hidden');
                 els.btnCropCancel.classList.remove('hidden');
             }
@@ -473,6 +476,9 @@ function bindEvents() {
     // Crop 取消：回到即時校正畫面
     els.btnCropCancel.addEventListener('click', () => {
         state.cropActive = false;
+        // 恢復即時校正畫面的填滿模式
+        els.imgCorrected.classList.add('w-full');
+        els.imgCorrected.classList.remove('max-h-full', 'max-w-full', 'object-contain', 'mx-auto');
         els.btnCropCancel.classList.add('hidden');
         els.btnCrop.classList.remove('hidden');
     });

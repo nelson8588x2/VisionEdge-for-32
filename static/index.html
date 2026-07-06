@@ -134,18 +134,18 @@
         </section>
 
         <!-- Center: Corrected view (hidden in Calibration) -->
-        <section id="panel-corrected" class="flex flex-col flex-1 min-w-0 hidden justify-center">
-            <div class="flex items-center mb-1 h-7 gap-2">
+        <section id="panel-corrected" class="flex flex-col flex-1 min-w-0 min-h-0 hidden">
+            <div class="flex items-center mb-1 h-7 gap-2 flex-shrink-0">
                 <h2 class="label-badge">Corrected View</h2>
                 <div class="ml-auto flex gap-1.5">
                     <button id="btn-crop" class="btn-crop-action">Crop Paper</button>
                     <button id="btn-crop-cancel" class="btn-crop-action btn-crop-back hidden">Back to Live</button>
                 </div>
             </div>
-            <div id="corrected-container" class="relative w-full rounded-lg overflow-hidden border border-light-300">
+            <div id="corrected-container" class="relative flex-1 min-h-0 w-full rounded-lg overflow-hidden border border-light-300 flex items-center justify-center">
                 <img id="img-corrected" class="w-full block hidden" alt="Corrected">
                 <canvas id="canvas-selection" class="absolute inset-0 w-full h-full hidden cursor-crosshair"></canvas>
-                <p id="corrected-placeholder" class="text-light-500 text-sm py-32 text-center">Waiting for calibration...</p>
+                <p id="corrected-placeholder" class="text-light-500 text-sm">Waiting for calibration...</p>
             </div>
         </section>
 
