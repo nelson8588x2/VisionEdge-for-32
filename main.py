@@ -126,10 +126,10 @@ async def process_frame(req: FrameRequest):
 
         if detector.frames_since_detection == 0:
             status_type = "ok"
-            status = "紙張偵測成功 — 已校準"
+            status = "Paper detected — Calibrated"
         else:
             status_type = "warn"
-            status = "使用上次偵測結果"
+            status = "Using last detection"
 
         corrected_raw = corrector.correct(frame)
         display_corrected = color_corrector_instance.process(
@@ -139,7 +139,7 @@ async def process_frame(req: FrameRequest):
     else:
         if corrector.is_calibrated:
             status_type = "warn"
-            status = "紙張遺失 — 使用上次校準"
+            status = "Paper lost — using last calibration"
             corrected_raw = corrector.correct(frame)
             display_corrected = color_corrector_instance.process(
                 corrected_raw, req.wb_enabled, req.contrast_enabled
@@ -147,7 +147,7 @@ async def process_frame(req: FrameRequest):
             corrected_b64 = encode_frame(display_corrected)
         else:
             status_type = "error"
-            status = "未偵測到紙張 — 未校準"
+            status = "Paper not found — not calibrated"
             corrected_b64 = None
 
     # 色彩校正原始畫面（含偵測覆疊）
@@ -170,7 +170,7 @@ async def process_frame(req: FrameRequest):
 async def crop_paper(req: CropRequest):
     """裁切紙張區域：僅返回校正後的紙張部分。"""
     if not corrector.is_calibrated:
-        return CropResponse(status="尚未校準，請先完成 Calibration")
+        return CropResponse(status="Not calibrated yet. Complete Calibration first.")
 
     frame = decode_frame(req.image)
     corrected = corrector.correct(frame)
@@ -181,10 +181,10 @@ async def crop_paper(req: CropRequest):
         paper_display = color_corrector_instance.process(paper_only, True, False)
         return CropResponse(
             cropped=encode_frame(paper_display, quality=90),
-            status="裁切完成",
+            status="Crop complete",
         )
     else:
-        return CropResponse(status="無法裁切紙張區域")
+        return CropResponse(status="Unable to crop paper region")
 
 
 @app.post("/api/chat", response_model=ChatResponse)
@@ -194,10 +194,10 @@ async def chat_endpoint(req: ChatRequest):
 
     try:
         answer = vision_api.ask_about_image(frame, req.question)
-        return ChatResponse(answer=answer, status="回答完成")
+        return ChatResponse(answer=answer, status="Answer complete")
     except Exception as e:
         log.error(f"問答失敗: {e}")
-        return ChatResponse(status=f"問答錯誤: {str(e)}")
+        return ChatResponse(status=f"Chat error: {str(e)}")
 
 
 @app.post("/api/reset")
@@ -205,7 +205,7 @@ async def reset_calibration():
     """重置偵測器和校正器狀態。"""
     detector.reset()
     corrector.reset()
-    return {"status": "已重置"}
+    return {"status": "Reset complete"}
 
 
 @app.get("/api/health")

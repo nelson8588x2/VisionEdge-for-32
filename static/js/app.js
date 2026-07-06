@@ -79,9 +79,9 @@ async function startCamera() {
         // 開始處理迴圈
         startProcessingLoop();
     } catch (err) {
-        console.error('攝影機啟動失敗:', err);
-        els.videoPlaceholder.textContent = `攝影機錯誤: ${err.message}`;
-        alert(`無法開啟攝影機: ${err.message}\n\n請確認已授予攝影機權限。`);
+        console.error('Camera start failed:', err);
+        els.videoPlaceholder.textContent = `Camera error: ${err.message}`;
+        alert(`Cannot open camera: ${err.message}\n\nPlease grant camera permissions.`);
     }
 }
 
@@ -157,7 +157,7 @@ async function processFrame() {
             } else {
                 els.imgCorrected.classList.add('hidden');
                 els.correctedPlaceholder.classList.remove('hidden');
-                els.correctedPlaceholder.textContent = '等待校正...';
+                els.correctedPlaceholder.textContent = 'Waiting for calibration...';
             }
         }
 
@@ -171,8 +171,8 @@ async function processFrame() {
         els.fpsLabel.textContent = `FPS: ${state.fps.toFixed(0)}`;
 
     } catch (err) {
-        console.error('處理失敗:', err);
-        updateStatus('error', `伺服器錯誤: ${err.message}`);
+        console.error('Processing failed:', err);
+        updateStatus('error', `Server error: ${err.message}`);
     } finally {
         state.processing = false;
     }
@@ -213,7 +213,7 @@ async function sendChatQuestion() {
         appendChatMessage('ai', data.answer || data.status);
     } catch (err) {
         removeLastChatMessage();
-        appendChatMessage('error', `錯誤: ${err.message}`);
+        appendChatMessage('error', `Error: ${err.message}`);
     } finally {
         els.btnChatSend.disabled = false;
     }
@@ -459,7 +459,7 @@ function bindEvents() {
                 els.btnCropCancel.classList.remove('hidden');
             }
         } catch (err) {
-            console.error('Crop 失敗:', err);
+            console.error('Crop failed:', err);
         } finally {
             els.btnCrop.disabled = false;
         }
@@ -476,7 +476,7 @@ function bindEvents() {
     els.btnReset.addEventListener('click', async () => {
         await fetch('/api/reset', { method: 'POST' });
         state.isCalibrated = false;
-        updateStatus('idle', '已重置，搜尋紙張中...');
+        updateStatus('idle', 'Reset. Searching for paper...');
         els.imgCorrected.classList.add('hidden');
         els.correctedPlaceholder.classList.remove('hidden');
     });
