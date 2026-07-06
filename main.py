@@ -45,7 +45,6 @@ class FrameRequest(BaseModel):
     image: str  # base64 編碼的 JPEG
     wb_enabled: bool = True
     contrast_enabled: bool = False
-    paper_orientation: str = "auto"  # auto, landscape, portrait
 
 
 class ProcessResponse(BaseModel):
@@ -123,7 +122,7 @@ async def process_frame(req: FrameRequest):
 
     if corners is not None:
         if detector.corners_changed:
-            corrector.update(corners, frame.shape, paper_orientation=req.paper_orientation)
+            corrector.update(corners, frame.shape)
 
         if detector.frames_since_detection == 0:
             status_type = "ok"

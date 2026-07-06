@@ -21,17 +21,18 @@ class PerspectiveCorrector:
         self.paper_bounds = None  # (x, y, w, h) of paper in corrected frame
         self.is_calibrated = False
 
-    def update(self, corners, frame_shape, paper_orientation="auto"):
+    def update(self, corners, frame_shape, **kwargs):
         """
         計算透視變換矩陣。
 
-        根據偵測到的紙張角點，計算從原始畫面到俯視圖的單應性矩陣。
-        針對橫向 16:9 攝影機畫面進行最佳化。
+        根據偵測到的紙張角點，計算從原始畫面到俑視圖的單應性矩陣。
+        自動判斷紙張方向：比較觀測到的寬高比與 ISO 216 標準比例的距離，
+        自動選擇更接近的方向。若計算出的紙張尺寸超過畫面邊界過多，
+        表示方向誤判，自動翻轉。
 
         Args:
             corners: np.ndarray (4, 2) - 偵測到的角點 (TL, TR, BR, BL)
             frame_shape: (height, width, channels) 輸入畫面的形狀
-            paper_orientation: "auto", "landscape", "portrait" — 強制紙張方向
         """
         src = np.array(corners, dtype=np.float32).reshape(4, 2)
         frame_h, frame_w = frame_shape[:2]
@@ -44,37 +45,46 @@ class PerspectiveCorrector:
         avg_w = (w_top + w_bottom) / 2.0
         avg_h = (h_left + h_right) / 2.0
 
-        # 判斷紙張方向
-        if paper_orientation == "landscape":
-            is_landscape_paper = True
-        elif paper_orientation == "portrait":
-            is_landscape_paper = False
-        else:
-            # 自動偵測：寬 > 高 * 1.05 即為橫向
-            is_landscape_paper = avg_w > (avg_h * 1.05)
+        # --- 智慧方向判斷 ---
+        # 計算觀測到的寬高比
+        observed_ratio = avg_w / max(avg_h, 1e-6)
 
-        # 判斷攝影機是否為橫向 (16:9 等寬螢幕)
-        is_landscape_frame = frame_w > frame_h
+        # ISO 216 標準比例
+        portrait_ratio = PAPER_RATIO           # ~0.707 (直向: 寬 < 高)
+        landscape_ratio = 1.0 / PAPER_RATIO    # ~1.414 (橫向: 寬 > 高)
 
-        if is_landscape_paper:
-            # 橫向紙張：寬邊為長邊（A4 橫放: 297 x 210）
-            # 在橫向畫面中，讓紙張寬度盡量填滿（留邊距）
-            if is_landscape_frame:
-                paper_w_px = int(frame_w * 0.85)
-            else:
-                paper_w_px = min(int(avg_w * 1.2), frame_w)
-            paper_h_px = int(paper_w_px * PAPER_RATIO)
-        else:
-            # 直向紙張：高邊為長邊
-            if is_landscape_frame:
-                paper_h_px = int(frame_h * 0.90)
-            else:
-                paper_h_px = min(int(avg_h * 1.2), frame_h)
-            paper_w_px = int(paper_h_px * PAPER_RATIO)
+        # 哪個標準比例更接近觀測值？（用相對誤差）
+        diff_landscape = abs(observed_ratio - landscape_ratio) / landscape_ratio
+        diff_portrait = abs(observed_ratio - portrait_ratio) / portrait_ratio
+        is_landscape_paper = diff_landscape < diff_portrait
 
-        # 確保紙張不超出畫面
-        paper_w_px = min(paper_w_px, frame_w - 20)
-        paper_h_px = min(paper_h_px, frame_h - 20)
+        # 計算紙張尺寸（保持正確的 ISO 216 比例）
+        paper_w_px, paper_h_px = self._compute_paper_size(
+            is_landscape_paper, frame_w, frame_h
+        )
+
+        # --- 模糊邊界檢查 ---
+        # 如果計算出的紙張需要大量裁剪才能放進畫面，代表方向可能誤判
+        # 翻轉方向再試一次
+        overflow_ratio = max(
+            paper_w_px / (frame_w - 20),
+            paper_h_px / (frame_h - 20),
+        )
+        if overflow_ratio > 1.15:
+            is_landscape_paper = not is_landscape_paper
+            paper_w_px, paper_h_px = self._compute_paper_size(
+                is_landscape_paper, frame_w, frame_h
+            )
+
+        # 最終安全夸縮（保持比例）
+        if paper_w_px > frame_w - 20:
+            scale = (frame_w - 20) / paper_w_px
+            paper_w_px = int(paper_w_px * scale)
+            paper_h_px = int(paper_h_px * scale)
+        if paper_h_px > frame_h - 20:
+            scale = (frame_h - 20) / paper_h_px
+            paper_w_px = int(paper_w_px * scale)
+            paper_h_px = int(paper_h_px * scale)
 
         # 輸出尺寸與輸入相同
         out_w = frame_w
@@ -100,6 +110,30 @@ class PerspectiveCorrector:
             int(paper_h_px),
         )
         self.is_calibrated = True
+
+    @staticmethod
+    def _compute_paper_size(is_landscape, frame_w, frame_h):
+        """
+        根據紙張方向和畫面尺寸，計算校正後的紙張像素尺寸。
+        保持正確的 ISO 216 比例，並盡量填滿畫面。
+
+        Returns:
+            (paper_w_px, paper_h_px)
+        """
+        if is_landscape:
+            # 橫向 A4: 寬/高 = 1.414
+            target_ratio = 1.0 / PAPER_RATIO
+            # 以畫面高度為基準（橫向紙張在 16:9 畫面中高度是限制因素）
+            paper_h_px = int(frame_h * 0.88)
+            paper_w_px = int(paper_h_px * target_ratio)
+        else:
+            # 直向 A4: 寬/高 = 0.707
+            target_ratio = PAPER_RATIO
+            # 以畫面高度為基準
+            paper_h_px = int(frame_h * 0.90)
+            paper_w_px = int(paper_h_px * target_ratio)
+
+        return paper_w_px, paper_h_px
 
     def correct(self, frame):
         """

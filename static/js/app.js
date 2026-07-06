@@ -49,8 +49,6 @@ const els = {
     btnChatSend: $('#btn-chat-send'),
     chatInput: $('#chat-input'),
     chatHistory: $('#chat-history'),
-    // 選項
-    selPaperOrient: $('#sel-paper-orient'),
 };
 
 // ============================================================
@@ -135,7 +133,6 @@ async function processFrame() {
                 image: imageData,
                 wb_enabled: true,
                 contrast_enabled: false,
-                paper_orientation: els.selPaperOrient ? els.selPaperOrient.value : 'auto',
             }),
         });
 
