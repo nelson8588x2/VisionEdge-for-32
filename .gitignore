@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# YOLO 模型檔案（太大不適合追蹤）
+*.pt
+*.onnx
+
+# 圖片暫存
+*.log
+*.png
+*.jpg
+*.jpeg
+*.bmp
+!static/img/*
+
+# 保留 assets 目錄的 PDF
+!assets/*.pdf
+
+# 秘密檔案
+.env
+
+# Conda
+.conda/
+
+# Node (如果有前端建置)
+node_modules/
+
+# 舊版 PyQt 桌面應用檔案（已改為 Web 版本）
+camera_thread.py
+start.bat
+generate_a4_border.py
+ui/
+modes/
+services/
+utils/

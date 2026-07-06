@@ -1,0 +1,97 @@
+/* VisionEdge Web — 深色主題樣式 */
+
+/* 標籤按鈕 */
+.tab-btn {
+    @apply bg-dark-600 text-gray-500 border-none rounded-md px-4 py-1.5 font-bold text-sm cursor-pointer transition-all;
+}
+.tab-btn:hover {
+    @apply bg-dark-500 text-gray-300;
+}
+.tab-btn.active {
+    @apply bg-accent text-white;
+}
+
+/* 面板群組 */
+.panel-group {
+    @apply bg-dark-800 border border-dark-500 rounded-lg p-3;
+}
+.panel-title {
+    @apply text-accent-light text-xs font-bold mb-2;
+}
+
+/* 按鈕樣式 */
+.btn-primary {
+    @apply bg-accent hover:bg-accent-hover text-white font-bold rounded-md px-4 py-2 text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed;
+}
+.btn-danger {
+    @apply bg-red-700 hover:bg-red-600 text-white font-bold rounded-md px-4 py-2 text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed;
+}
+.btn-sm {
+    @apply bg-dark-500 hover:bg-dark-400 text-gray-300 rounded-md px-3 py-1 text-xs transition-all;
+}
+.btn-toggle {
+    @apply bg-dark-500 text-gray-400 border border-dark-400 rounded-md px-3 py-1.5 font-bold cursor-pointer transition-all;
+}
+.btn-toggle.active {
+    @apply bg-green-800 border-green-700 text-white;
+}
+
+/* 模式內容 */
+.mode-content {
+    @apply flex flex-col gap-2;
+}
+
+/* 狀態指示燈顏色 */
+.dot-ok { @apply bg-green-500; }
+.dot-warn { @apply bg-orange-500; }
+.dot-error { @apply bg-red-500; }
+.dot-idle { @apply bg-gray-500; }
+
+/* 聊天訊息 */
+.chat-msg-user {
+    @apply bg-accent/10 border border-accent/30 rounded-lg p-2;
+}
+.chat-msg-user .chat-role {
+    @apply text-accent-light font-bold text-xs;
+}
+.chat-msg-ai {
+    @apply bg-green-900/20 border border-green-800/30 rounded-lg p-2;
+}
+.chat-msg-ai .chat-role {
+    @apply text-green-400 font-bold text-xs;
+}
+.chat-msg-error {
+    @apply bg-red-900/20 border border-red-800/30 rounded-lg p-2 text-red-400;
+}
+
+/* 選取框 */
+.selection-box {
+    position: absolute;
+    border: 2px solid #4a5aff;
+    background: rgba(74, 90, 255, 0.15);
+    pointer-events: none;
+}
+
+/* 捲軸 */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #1a1a2e;
+}
+::-webkit-scrollbar-thumb {
+    background: #3a3a5a;
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #4a5aff;
+}
+
+/* 載入動畫 */
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+.loading-dot {
+    animation: pulse-dot 1.5s infinite;
+}
