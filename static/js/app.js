@@ -44,8 +44,6 @@ const els = {
     camInfo: $('#cam-info'),
     statusDot: $('#status-dot'),
     statusText: $('#status-text'),
-    statusDotInline: $('#status-dot-inline'),
-    statusTextInline: $('#status-text-inline'),
     // 按鈕
     btnReset: $('#btn-reset'),
     btnCrop: $('#btn-crop'),
@@ -382,13 +380,6 @@ function getCroppedSelection() {
 function updateStatus(type, text) {
     els.statusDot.className = `w-3 h-3 rounded-full dot-${type}`;
     els.statusText.textContent = text;
-    // 同步行內狀態燈（Original Feed 標題旁）
-    if (els.statusDotInline) {
-        els.statusDotInline.className = `w-2.5 h-2.5 rounded-full flex-shrink-0 dot-${type}`;
-    }
-    if (els.statusTextInline) {
-        els.statusTextInline.textContent = text;
-    }
 }
 
 // ============================================================
