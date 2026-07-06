@@ -9,17 +9,13 @@
 const state = {
     currentMode: 'calibration',
     cameraRunning: false,
-    wbEnabled: true,
-    contrastEnabled: false,
     isCalibrated: false,
     processing: false,
-    autoDetectInterval: null,
     // 選取框（Chat 模式）
     selection: null,
     isSelecting: false,
     selStart: null,
     // FPS 計算
-    lastFrameTime: 0,
     fps: 0,
     // 處理間隔
     processInterval: null,
@@ -45,27 +41,14 @@ const els = {
     statusDot: $('#status-dot'),
     statusText: $('#status-text'),
     // 按鈕
-    btnStart: $('#btn-start'),
-    btnStop: $('#btn-stop'),
     btnReset: $('#btn-reset'),
-    btnWb: $('#btn-wb'),
-    btnContrast: $('#btn-contrast'),
-    btnDetect: $('#btn-detect'),
-    btnScan: $('#btn-scan'),
-    btnCopyText: $('#btn-copy-text'),
     btnChatSend: $('#btn-chat-send'),
     chatInput: $('#chat-input'),
     chatHistory: $('#chat-history'),
-    // 面板
-    panelOriginal: $('#panel-original'),
-    panelCorrected: $('#panel-corrected'),
-    detectResults: $('#detect-results'),
-    scanTextResult: $('#scan-text-result'),
-    scanDescResult: $('#scan-desc-result'),
 };
 
 // ============================================================
-// 攝影機管理
+// 攝影機管理（自動啟動）
 // ============================================================
 async function startCamera() {
     try {
@@ -86,8 +69,6 @@ async function startCamera() {
         els.camInfo.textContent = `Camera: ${settings.width}x${settings.height}`;
 
         state.cameraRunning = true;
-        els.btnStart.disabled = true;
-        els.btnStop.disabled = false;
 
         // 開始處理迴圈
         startProcessingLoop();
@@ -96,25 +77,6 @@ async function startCamera() {
         els.videoPlaceholder.textContent = `攝影機錯誤: ${err.message}`;
         alert(`無法開啟攝影機: ${err.message}\n\n請確認已授予攝影機權限。`);
     }
-}
-
-function stopCamera() {
-    if (els.video.srcObject) {
-        els.video.srcObject.getTracks().forEach(t => t.stop());
-        els.video.srcObject = null;
-    }
-    els.video.classList.add('hidden');
-    els.videoPlaceholder.classList.remove('hidden');
-    els.videoPlaceholder.textContent = '攝影機已停止';
-    els.imgOriginal.classList.add('hidden');
-    els.imgCorrected.classList.add('hidden');
-    els.correctedPlaceholder.classList.remove('hidden');
-
-    state.cameraRunning = false;
-    els.btnStart.disabled = false;
-    els.btnStop.disabled = true;
-
-    stopProcessingLoop();
 }
 
 // ============================================================
@@ -137,9 +99,9 @@ function captureFrame() {
 // ============================================================
 function startProcessingLoop() {
     stopProcessingLoop();
-    // 校準模式：每 300ms 發送一幀到伺服器
+    // 每 300ms 發送一幀到伺服器進行校正
     state.processInterval = setInterval(() => {
-        if (state.currentMode === 'calibration' && !state.processing) {
+        if (!state.processing) {
             processFrame();
         }
     }, 300);
@@ -165,8 +127,8 @@ async function processFrame() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 image: imageData,
-                wb_enabled: state.wbEnabled,
-                contrast_enabled: state.contrastEnabled,
+                wb_enabled: true,
+                contrast_enabled: false,
             }),
         });
 
@@ -206,105 +168,6 @@ async function processFrame() {
     } finally {
         state.processing = false;
     }
-}
-
-// ============================================================
-// 物件偵測
-// ============================================================
-async function detectObjects() {
-    const imageData = captureFrame();
-    if (!imageData) return;
-
-    setDetectStatus('warn', '偵測中...');
-    $('#btn-detect').disabled = true;
-
-    try {
-        const resp = await fetch('/api/detect', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                image: imageData,
-                wb_enabled: state.wbEnabled,
-                contrast_enabled: state.contrastEnabled,
-            }),
-        });
-
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const data = await resp.json();
-
-        // 顯示偵測結果影像
-        if (data.display) {
-            els.imgOriginal.src = `data:image/jpeg;base64,${data.display}`;
-            els.imgOriginal.classList.remove('hidden');
-            els.video.classList.add('hidden');
-        }
-
-        // 更新結果列表
-        if (data.objects && data.objects.length > 0) {
-            const lines = data.objects.map((obj, i) => {
-                const bar = '█'.repeat(Math.round(obj.confidence * 10)) +
-                           '░'.repeat(10 - Math.round(obj.confidence * 10));
-                return `${i + 1}. ${obj.name}\n   ${bar} ${Math.round(obj.confidence * 100)}%`;
-            });
-            els.detectResults.textContent = lines.join('\n\n');
-            setDetectStatus('ok', `偵測到 ${data.objects.length} 個物件`);
-        } else {
-            els.detectResults.textContent = '未偵測到物件';
-            setDetectStatus('idle', '未偵測到物件');
-        }
-    } catch (err) {
-        els.detectResults.textContent = `錯誤: ${err.message}`;
-        setDetectStatus('error', `偵測失敗: ${err.message}`);
-    } finally {
-        $('#btn-detect').disabled = false;
-    }
-}
-
-function setDetectStatus(type, text) {
-    const dot = $('#detect-dot');
-    const label = $('#detect-text');
-    dot.className = `w-3 h-3 rounded-full dot-${type}`;
-    label.textContent = text;
-}
-
-// ============================================================
-// 文件掃描
-// ============================================================
-async function scanDocument() {
-    const imageData = captureFrame();
-    if (!imageData) return;
-
-    setScanStatus('warn', '掃描中...');
-    $('#btn-scan').disabled = true;
-
-    try {
-        const resp = await fetch('/api/scan', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: imageData }),
-        });
-
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const data = await resp.json();
-
-        els.scanTextResult.textContent = data.text || '(未擷取到文字)';
-        els.scanDescResult.textContent = data.descriptions.length > 0
-            ? data.descriptions.map((d, i) => `圖畫 ${i + 1}: ${d}`).join('\n\n')
-            : '(未偵測到圖畫)';
-        setScanStatus('ok', '掃描完成');
-    } catch (err) {
-        els.scanTextResult.textContent = `錯誤: ${err.message}`;
-        setScanStatus('error', `掃描失敗: ${err.message}`);
-    } finally {
-        $('#btn-scan').disabled = false;
-    }
-}
-
-function setScanStatus(type, text) {
-    const dot = $('#scan-dot');
-    const label = $('#scan-text');
-    dot.className = `w-3 h-3 rounded-full dot-${type}`;
-    label.textContent = text;
 }
 
 // ============================================================
@@ -535,15 +398,10 @@ function switchMode(mode) {
         resizeSelectionCanvas();
     }
 
-    // 處理迴圈行為
+    // 處理迴圈：所有模式都持續校正
     stopProcessingLoop();
-    if (mode === 'calibration' && state.cameraRunning) {
+    if (state.cameraRunning) {
         startProcessingLoop();
-    }
-
-    // 自動偵測
-    if (mode !== 'detection') {
-        stopAutoDetect();
     }
 }
 
@@ -555,28 +413,9 @@ function resizeSelectionCanvas() {
 }
 
 // ============================================================
-// 自動偵測
-// ============================================================
-function startAutoDetect() {
-    stopAutoDetect();
-    state.autoDetectInterval = setInterval(detectObjects, 5000);
-}
-
-function stopAutoDetect() {
-    if (state.autoDetectInterval) {
-        clearInterval(state.autoDetectInterval);
-        state.autoDetectInterval = null;
-    }
-}
-
-// ============================================================
 // 事件綁定
 // ============================================================
 function bindEvents() {
-    // 攝影機控制
-    els.btnStart.addEventListener('click', startCamera);
-    els.btnStop.addEventListener('click', stopCamera);
-
     // 模式切換
     $$('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => switchMode(btn.dataset.mode));
@@ -589,33 +428,6 @@ function bindEvents() {
         updateStatus('idle', '已重置，搜尋紙張中...');
         els.imgCorrected.classList.add('hidden');
         els.correctedPlaceholder.classList.remove('hidden');
-    });
-
-    // 色彩控制
-    els.btnWb.addEventListener('click', () => {
-        state.wbEnabled = !state.wbEnabled;
-        els.btnWb.classList.toggle('active', state.wbEnabled);
-        els.btnWb.textContent = state.wbEnabled ? '✓ WB' : '✗ WB';
-    });
-    els.btnContrast.addEventListener('click', () => {
-        state.contrastEnabled = !state.contrastEnabled;
-        els.btnContrast.classList.toggle('active', state.contrastEnabled);
-        els.btnContrast.textContent = state.contrastEnabled ? '✓ Contrast' : '✗ Contrast';
-    });
-
-    // 偵測
-    els.btnDetect.addEventListener('click', detectObjects);
-    $('#chk-auto-detect').addEventListener('change', (e) => {
-        if (e.target.checked) startAutoDetect();
-        else stopAutoDetect();
-    });
-
-    // 掃描
-    els.btnScan.addEventListener('click', scanDocument);
-    els.btnCopyText.addEventListener('click', () => {
-        navigator.clipboard.writeText(els.scanTextResult.textContent);
-        els.btnCopyText.textContent = '✓ 已複製';
-        setTimeout(() => els.btnCopyText.textContent = '📋 複製', 2000);
     });
 
     // 聊天

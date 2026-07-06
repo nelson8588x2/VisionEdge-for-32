@@ -10,18 +10,21 @@
             theme: {
                 extend: {
                     colors: {
-                        dark: {
-                            900: '#0d0d1a',
-                            800: '#12122a',
-                            700: '#1a1a2e',
-                            600: '#1a1a3a',
-                            500: '#2a2a4a',
-                            400: '#3a3a5a',
+                        light: {
+                            50: '#ffffff',
+                            100: '#f8f9fa',
+                            200: '#e9ecef',
+                            300: '#dee2e6',
+                            400: '#ced4da',
+                            500: '#adb5bd',
+                            600: '#6c757d',
+                            700: '#495057',
+                            800: '#343a40',
                         },
                         accent: {
                             DEFAULT: '#4a5aff',
-                            hover: '#5a6aff',
-                            light: '#7f8fff',
+                            hover: '#3a4aee',
+                            light: '#eef0ff',
                         }
                     }
                 }
@@ -30,21 +33,19 @@
     </script>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="bg-dark-700 text-gray-200 min-h-screen flex flex-col overflow-hidden">
+<body class="bg-light-100 text-light-800 min-h-screen flex flex-col overflow-hidden">
 
     <!-- 頂部標籤列 -->
-    <header class="bg-dark-900 h-[50px] flex items-center px-4 gap-2 flex-shrink-0">
-        <h1 class="text-accent-light font-bold text-lg mr-5">VisionEdge</h1>
+    <header class="bg-white h-[50px] flex items-center px-4 gap-2 flex-shrink-0 border-b border-light-300 shadow-sm">
+        <h1 class="text-accent font-bold text-lg mr-5">VisionEdge</h1>
         
         <button class="tab-btn active" data-mode="calibration">Calibration</button>
-        <button class="tab-btn" data-mode="detection">Detection</button>
-        <button class="tab-btn" data-mode="scan">Scan</button>
         <button class="tab-btn" data-mode="chat">Chat</button>
 
         <div class="flex-1"></div>
         
-        <span id="fps-label" class="text-gray-500 text-xs">FPS: --</span>
-        <span id="cam-info" class="text-gray-500 text-xs ml-3">Camera: --</span>
+        <span id="fps-label" class="text-light-600 text-xs">FPS: --</span>
+        <span id="cam-info" class="text-light-600 text-xs ml-3">Camera: --</span>
     </header>
 
     <!-- 主要內容區域 -->
@@ -52,22 +53,22 @@
 
         <!-- 左：原始影像 -->
         <section id="panel-original" class="flex flex-col flex-1 min-w-0">
-            <h2 class="text-accent-light text-center text-sm font-bold mb-1">Original Feed</h2>
-            <div class="relative flex-1 bg-dark-800 rounded-xl border-2 border-dark-500 flex items-center justify-center overflow-hidden">
+            <h2 class="text-accent text-center text-sm font-bold mb-1">Original Feed</h2>
+            <div class="relative flex-1 bg-white rounded-xl border border-light-300 shadow-sm flex items-center justify-center overflow-hidden">
                 <video id="video-feed" autoplay playsinline muted class="max-w-full max-h-full object-contain"></video>
                 <canvas id="canvas-capture" class="hidden"></canvas>
                 <img id="img-original" class="max-w-full max-h-full object-contain hidden" alt="Original">
-                <p id="video-placeholder" class="text-gray-500 text-sm absolute">正在啟動攝影機...</p>
+                <p id="video-placeholder" class="text-light-500 text-sm absolute">正在啟動攝影機...</p>
             </div>
         </section>
 
         <!-- 中：校正後影像 -->
         <section id="panel-corrected" class="flex flex-col flex-1 min-w-0">
-            <h2 class="text-accent-light text-center text-sm font-bold mb-1">Corrected View</h2>
-            <div class="relative flex-1 bg-dark-800 rounded-xl border-2 border-dark-500 flex items-center justify-center overflow-hidden">
+            <h2 class="text-accent text-center text-sm font-bold mb-1">Corrected View</h2>
+            <div class="relative flex-1 bg-white rounded-xl border border-light-300 shadow-sm flex items-center justify-center overflow-hidden">
                 <img id="img-corrected" class="max-w-full max-h-full object-contain hidden" alt="Corrected">
                 <canvas id="canvas-selection" class="absolute inset-0 w-full h-full hidden cursor-crosshair"></canvas>
-                <p id="corrected-placeholder" class="text-gray-500 text-sm absolute">等待校正...</p>
+                <p id="corrected-placeholder" class="text-light-500 text-sm absolute">等待校正...</p>
             </div>
         </section>
 
@@ -79,70 +80,23 @@
                 <div class="panel-group">
                     <h3 class="panel-title">Calibration</h3>
                     <div id="status-indicator" class="flex items-center gap-2 mb-2">
-                        <span id="status-dot" class="w-3 h-3 rounded-full bg-gray-500"></span>
-                        <span id="status-text" class="text-sm">搜尋紙張中...</span>
+                        <span id="status-dot" class="w-3 h-3 rounded-full bg-light-500"></span>
+                        <span id="status-text" class="text-sm text-light-700">搜尋紙張中...</span>
                     </div>
-                    <p class="text-xs text-gray-500 mb-3">
+                    <p class="text-xs text-light-600 mb-3">
                         放置 A4/A5 黑色邊框參考紙張在桌面上。<br>確保四邊完全可見。
                     </p>
-                    <button id="btn-reset" class="btn-danger w-full">🔄 重置偵測</button>
+                    <button id="btn-reset" class="btn-danger w-full">重置偵測</button>
                 </div>
                 <div class="panel-group">
                     <h3 class="panel-title">使用說明</h3>
-                    <ol class="text-xs text-gray-500 list-decimal list-inside space-y-1">
+                    <ol class="text-xs text-light-600 list-decimal list-inside space-y-1">
                         <li>列印 A4 黑色邊框參考紙</li>
                         <li>平放在桌面上</li>
                         <li>確保四邊清晰可見</li>
                         <li>校準自動完成</li>
-                        <li>切換到 Detection 或 Scan</li>
+                        <li>切換到 Chat 模式提問</li>
                     </ol>
-                </div>
-            </div>
-
-            <!-- Detection 面板 -->
-            <div id="mode-detection" class="mode-content hidden">
-                <div class="panel-group">
-                    <h3 class="panel-title">Detection</h3>
-                    <div id="detect-status" class="flex items-center gap-2 mb-2">
-                        <span class="w-3 h-3 rounded-full bg-gray-500" id="detect-dot"></span>
-                        <span class="text-sm" id="detect-text">偵測模式就緒</span>
-                    </div>
-                    <button id="btn-detect" class="btn-primary w-full mb-2">🔍 偵測物件</button>
-                    <label class="flex items-center gap-2 text-xs text-gray-400">
-                        <input type="checkbox" id="chk-auto-detect" class="accent-accent">
-                        自動偵測（每 5 秒）
-                    </label>
-                </div>
-                <div class="panel-group flex-1">
-                    <h3 class="panel-title">偵測結果</h3>
-                    <div id="detect-results" class="text-sm text-gray-300 font-mono whitespace-pre-wrap overflow-y-auto max-h-[300px]">
-                        點擊「偵測物件」開始...
-                    </div>
-                </div>
-            </div>
-
-            <!-- Scan 面板 -->
-            <div id="mode-scan" class="mode-content hidden">
-                <div class="panel-group">
-                    <h3 class="panel-title">Scan</h3>
-                    <div id="scan-status" class="flex items-center gap-2 mb-2">
-                        <span class="w-3 h-3 rounded-full bg-gray-500" id="scan-dot"></span>
-                        <span class="text-sm" id="scan-text">等待校準...</span>
-                    </div>
-                    <button id="btn-scan" class="btn-primary w-full">📄 掃描文件</button>
-                </div>
-                <div class="panel-group flex-1">
-                    <h3 class="panel-title">擷取文字</h3>
-                    <div id="scan-text-result" class="text-sm text-gray-300 font-mono whitespace-pre-wrap overflow-y-auto max-h-[200px]">
-                        掃描文件以擷取文字...
-                    </div>
-                    <button id="btn-copy-text" class="btn-sm mt-2">📋 複製</button>
-                </div>
-                <div class="panel-group">
-                    <h3 class="panel-title">圖畫描述</h3>
-                    <div id="scan-desc-result" class="text-sm text-gray-300 whitespace-pre-wrap overflow-y-auto max-h-[150px]">
-                        掃描文件以描述圖畫...
-                    </div>
                 </div>
             </div>
 
@@ -150,9 +104,9 @@
             <div id="mode-chat" class="mode-content hidden">
                 <div class="panel-group flex-1 flex flex-col">
                     <h3 class="panel-title">Ask AI</h3>
-                    <p class="text-xs text-gray-500 mb-2">在校正後影像上拖曳選取區域，然後提問。</p>
+                    <p class="text-xs text-light-600 mb-2">在校正後影像上拖曳選取區域，然後提問。</p>
                     <div id="chat-history" class="flex-1 overflow-y-auto text-sm space-y-2 mb-2 max-h-[400px]">
-                        <div class="text-gray-500 text-xs">
+                        <div class="text-light-500 text-xs">
                             1. 在影像上拖曳選取區域<br>
                             2. 輸入問題<br>
                             3. 按 Send 或 Enter
@@ -160,29 +114,12 @@
                     </div>
                     <div class="flex gap-2">
                         <input id="chat-input" type="text" placeholder="輸入問題..."
-                            class="flex-1 bg-dark-800 border border-dark-500 rounded-md px-3 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-accent">
+                            class="flex-1 bg-light-100 border border-light-300 rounded-md px-3 py-1.5 text-sm text-light-800 focus:outline-none focus:border-accent">
                         <button id="btn-chat-send" class="btn-primary px-3">Send</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 共用控制項 -->
-            <div id="shared-controls" class="mt-auto space-y-2">
-                <div class="panel-group">
-                    <h3 class="panel-title">Color</h3>
-                    <div class="flex gap-2">
-                        <button id="btn-wb" class="btn-toggle active flex-1 text-xs">✓ WB</button>
-                        <button id="btn-contrast" class="btn-toggle flex-1 text-xs">✗ Contrast</button>
-                    </div>
-                </div>
-                <div class="panel-group">
-                    <h3 class="panel-title">Camera</h3>
-                    <div class="flex gap-2">
-                        <button id="btn-start" class="btn-primary flex-1 text-xs">▶ Start</button>
-                        <button id="btn-stop" class="btn-danger flex-1 text-xs" disabled>⏹ Stop</button>
-                    </div>
-                </div>
-            </div>
         </aside>
     </main>
 
