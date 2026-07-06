@@ -42,8 +42,8 @@ class PaperDetector:
         """
         debug_frame = frame.copy()
         h, w = frame.shape[:2]
-        min_area = h * w * 0.05  # paper must be at least 5% of frame
-        max_area = h * w * 0.60  # paper can't be more than 60% of frame
+        min_area = h * w * 0.03  # 紙張至少佔畫面 3%（橫向 16:9 中紙張佔比較小）
+        max_area = h * w * 0.70  # 紙張最多佔畫面 70%
 
         # Try detection at full resolution first, then downscaled
         best_quad = self._find_quad(frame, min_area, max_area)

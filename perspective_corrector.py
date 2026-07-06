@@ -23,40 +23,48 @@ class PerspectiveCorrector:
 
     def update(self, corners, frame_shape):
         """
-        Compute perspective transform from detected paper corners.
+        計算透視變換矩陣。
 
-        The paper corners define the mapping: we know where they should be
-        in a top-down view, so we compute a homography that transforms
-        the entire frame accordingly.
+        根據偵測到的紙張角點，計算從原始畫面到俯視圖的單應性矩陣。
+        針對橫向 16:9 攝影機畫面進行最佳化。
 
         Args:
-            corners: np.ndarray (4, 2) - detected corners (TL, TR, BR, BL)
-            frame_shape: (height, width, channels) of the input frame
+            corners: np.ndarray (4, 2) - 偵測到的角點 (TL, TR, BR, BL)
+            frame_shape: (height, width, channels) 輸入畫面的形狀
         """
         src = np.array(corners, dtype=np.float32).reshape(4, 2)
         frame_h, frame_w = frame_shape[:2]
 
-        # Determine paper orientation (portrait vs landscape)
-        # Average opposite edges to cancel perspective distortion
+        # 判斷紙張方向（直向 vs 橫向）
         w_top = np.linalg.norm(src[1] - src[0])
         w_bottom = np.linalg.norm(src[2] - src[3])
         h_left = np.linalg.norm(src[3] - src[0])
         h_right = np.linalg.norm(src[2] - src[1])
         avg_w = (w_top + w_bottom) / 2.0
         avg_h = (h_left + h_right) / 2.0
-        is_landscape = avg_w > (avg_h * 1.5)
+        is_landscape_paper = avg_w > (avg_h * 1.1)
 
-        if is_landscape:
-            # Landscape: width is the long side
+        # 判斷攝影機是否為橫向 (16:9 等寬螢幕)
+        is_landscape_frame = frame_w > frame_h
+
+        if is_landscape_paper:
+            # 橫向紙張：寬邊為長邊
             paper_w_px = min(int(avg_w * 1.2), frame_w)
             paper_h_px = int(paper_w_px * PAPER_RATIO)
         else:
-            # Portrait: height is the long side
-            paper_h_px = min(int(avg_h * 1.2), frame_h)
+            # 直向紙張：高邊為長邊
+            # 在橫向畫面中，讓紙張盡量填滿高度（留 5% 邊距）
+            if is_landscape_frame:
+                paper_h_px = int(frame_h * 0.90)
+            else:
+                paper_h_px = min(int(avg_h * 1.2), frame_h)
             paper_w_px = int(paper_h_px * PAPER_RATIO)
 
-        # Place the paper rectangle centered in the output frame
-        # Output frame matches input aspect ratio
+        # 確保紙張不超出畫面
+        paper_w_px = min(paper_w_px, frame_w - 20)
+        paper_h_px = min(paper_h_px, frame_h - 20)
+
+        # 輸出尺寸與輸入相同
         out_w = frame_w
         out_h = frame_h
 
